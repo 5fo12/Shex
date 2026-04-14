@@ -1,45 +1,13 @@
-! This the documentation of SH1
-
-! Single-line comments start with !
-
-<
-    Multi-line comments start with <
-    and end with > A multi-line comment
-    only ends if the > is at the end of a line.
->
+! This file is used for testing the features of Shex
 
 var name
 set name "Vikings"
 var place
 set place "Southern Norway"
 
-< 
-    You use var <Variable name> to declare variables.
-
-    You use set <Variable name> <Value> to delcare variables.
-    To set a string value use: "Value",
-    For a int value: 100,
-    For a operation use: (100 + 200),
-    For evaluation use: {func p1 p2...},
-    Spaces are needed for operations.
-
-    IMPORTANT:
-    Expressions are currently limited,
-    set x (75 - 25 + 5) will not work.
-
-    All variables are global.
->
-
 print "Hello world!"
 print "We are the so called \"$name$\" of the North."
 print "We come from $place$."
-
-<
-    print is used like: print <Value>
-    To use a variable in print use: $Variable$,
-    Else use Variable if not in a print statement.
-    Same value rules from set command apply.
->
 
 var a
 set a 541
