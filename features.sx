@@ -1,0 +1,126 @@
+! This the documentation of SH1
+
+! Single-line comments start with !
+
+<
+    Multi-line comments start with <
+    and end with > A multi-line comment
+    only ends if the > is at the end of a line.
+>
+
+var name
+set name "Vikings"
+var place
+set place "Southern Norway"
+
+< 
+    You use var <Variable name> to declare variables.
+
+    You use set <Variable name> <Value> to delcare variables.
+    To set a string value use: "Value",
+    For a int value: 100,
+    For a operation use: (100 + 200),
+    For evaluation use: {func p1 p2...},
+    Spaces are needed for operations.
+
+    IMPORTANT:
+    Expressions are currently limited,
+    set x (75 - 25 + 5) will not work.
+
+    All variables are global.
+>
+
+print "Hello world!"
+print "We are the so called \"$name$\" of the North."
+print "We come from $place$."
+
+<
+    print is used like: print <Value>
+    To use a variable in print use: $Variable$,
+    Else use Variable if not in a print statement.
+    Same value rules from set command apply.
+>
+
+var a
+set a 541
+
+var b
+set b 11
+
+var c
+set c (a + b)
+
+print "541 + 11 = $c$"
+
+set c (541 - 11)
+
+print "541 - 11 = $c$"
+
+if [c < 541]
+print "c is less than 541."
+endif
+
+if [541 = 10]
+print "541 = 10"
+endif
+
+<
+    Use [] brackets around expressions.
+    Expressions must have spaces.
+
+    If blocks are ended with endif.
+
+    IMPORTANT:
+    Expressions are currently limited,
+    [55 = 45 + 10] will not work.
+>
+
+func greet name2
+print "Hello $name2$!"
+endfunc
+
+greet "Gemini 3"
+
+func info name3 age
+print "Name: $name3$."
+print "Age: $age$."
+endfunc
+
+info "Bob Green" 15
+
+func add num1 num2
+return (num1 + num2)
+endfunc
+
+var sum
+set sum {add 5 2}
+print "5 + 2 = $sum$"
+print "7 + 3 ="
+print {add 7 3}
+print "14 - 4 ="
+print (14 - 4)
+
+<
+    Declaring functions is as follows: func <Function name> Parameter1 Parameter2 ...
+    Function blocks are ended with endfunc.
+
+    After decleration they can be used as: func Params.
+>
+
+! Recursive searching of if and function blocks is not implemented.
+! Do not indent code in if or function blocks.
+! Do not leave whitespace after commands.
+
+<
+    Keywords:
+    var
+    set
+    if
+    endif
+    func
+    endfunc
+    return
+    print
+
+    Cannot be used as function or variable names.
+>
