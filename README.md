@@ -1,6 +1,22 @@
 # Shex scripting langauge
 Shex is a small interpreted language.  
-It currently is still being updated.  
+It currently is still being updated. 
+
+To run a script with the compiled version:
+```
+shex scriptname.sx
+```
+
+You can also compile your scripts to binaries!
+Just use the compiler binary:
+```
+compile scriptname.sx
+```
+
+You can build it yourself by running:  
+```
+go build shex.go
+```
 
 ### Comments
 Single line comments start with "!".  
@@ -31,11 +47,12 @@ Conditions are surronded by brackets.
 ```
 
 ### Commands
-**Var** declares a variable, variables can be accessed in strings by surrounding the variable name in dollar signs.
+**Var** declares a variable, variables can be accessed in strings by surrounding the variable name in dollar signs.  
+Variable values are bool, text and number.
 
 ```
-! Usage: var name
-var var1
+! Usage: var name:type
+var var1:text
 
 "Var1: $var1$"
 ```  
@@ -60,6 +77,17 @@ print {function param1 param2}
 ! Conditions cannot be used for printing yet.
 ```
 
+**Read** allows you to take use input.  
+
+```
+! Usage: read
+var input:text
+print "Input text:"
+set input {read}
+
+print "Input: $input$"
+```
+
 **If** allows the execution of code if a condition is true.
 
 ```
@@ -72,10 +100,11 @@ endif
 ```
 
 **Func** allows the creation of functions for reusable code.
+Parameters are declared the same way as variables.  
 
 ```
 ! Usage:
-func greet name
+func greet name:text
 print "Hello $name$!"
 endfunc
 

@@ -1,0 +1,7 @@
+[x] Switch ints to floats
+[x] Fix expression parsing
+[x] Fix return & functions
+[] Add file system commands
+[] Add loops
+[] Upgrade expression parsing
+[] Add PEMDAS support

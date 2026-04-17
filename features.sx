@@ -1,21 +1,21 @@
 ! This file is used for testing the features of Shex
 
-var name
+var name:text
 set name "Vikings"
-var place
+var place:text
 set place "Southern Norway"
 
 print "Hello world!"
 print "We are the so called \"$name$\" of the North."
 print "We come from $place$."
 
-var a
+var a:number
 set a 541
 
-var b
+var b:number
 set b 11
 
-var c
+var c:number
 set c (a + b)
 
 print "541 + 11 = $c$"
@@ -32,63 +32,33 @@ if [541 = 10]
 print "541 = 10"
 endif
 
-<
-    Use [] brackets around expressions.
-    Expressions must have spaces.
-
-    If blocks are ended with endif.
-
-    IMPORTANT:
-    Expressions are currently limited,
-    [55 = 45 + 10] will not work.
->
-
-func greet name2
-print "Hello $name2$!"
+func greet name:string
+print "Hello $name$!"
 endfunc
 
 greet "Gemini 3"
 
-func info name3 age
-print "Name: $name3$."
+func info name:string age:number
+print "Name: $name$."
 print "Age: $age$."
 endfunc
 
 info "Bob Green" 15
 
-func add num1 num2
+func add num1:number num2:number
 return (num1 + num2)
 endfunc
 
-var sum
+var sum:number
 set sum {add 5 2}
 print "5 + 2 = $sum$"
 print "7 + 3 ="
 print {add 7 3}
 print "14 - 4 ="
 print (14 - 4)
+print (10 / 3)
 
-<
-    Declaring functions is as follows: func <Function name> Parameter1 Parameter2 ...
-    Function blocks are ended with endfunc.
-
-    After decleration they can be used as: func Params.
->
-
-! Recursive searching of if and function blocks is not implemented.
-! Do not indent code in if or function blocks.
-! Do not leave whitespace after commands.
-
-<
-    Keywords:
-    var
-    set
-    if
-    endif
-    func
-    endfunc
-    return
-    print
-
-    Cannot be used as function or variable names.
->
+var input:text
+print "Type in your input:"
+set input {read}
+print "You typed in: \"$input$\""

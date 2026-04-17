@@ -2,19 +2,30 @@ package main
 
 import (
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"strconv"
 	"strings"
 )
 
 type function struct {
-	params []string
+	params map[string]parameter
 	runs   []string
 }
 
-var variables = make(map[string]string)
-var functions = make(map[string]function)
-var keywords = [8]string{
+type parameter struct {
+	uname string
+	vtype string
+}
+
+type variable struct {
+	value string
+	vtype string
+}
+
+var vars = make(map[string]variable)
+var funcs = make(map[string]function)
+var keywords = [9]string{
 	"var",
 	"set",
 	"if",
@@ -23,68 +34,58 @@ var keywords = [8]string{
 	"endfunc",
 	"return",
 	"print",
-}
-var numbers = [10]int{
-	0,
-	1,
-	2,
-	3,
-	4,
-	5,
-	6,
-	7,
-	8,
-	9,
+	"read",
 }
 
-func parse_text(text string) string {
-	parsed_text := ""
+func parseText(text string) string {
+	parsedText := ""
 
 	for i := 0; i < len(text); i++ {
 		if text[i] == '\\' && text[i+1] == '"' {
-			parsed_text += "\""
+			parsedText += "\""
 		} else if text[i] != '"' {
-			parsed_text += string(text[i])
+			parsedText += string(text[i])
 		}
 	}
 
-	return parsed_text
+	return parsedText
 }
 
-func parse_math(math string) int {
-	parsed_math := strings.Split(math, " ")
-	result := 0
+func parseMath(math string) float64 {
+	parsedMath := strings.Split(math, " ")
+	var result float64
 
-	for i := 0; i < len(parsed_math); i++ {
-		if strings.Contains(parsed_math[i], "(") || strings.Contains(parsed_math[i], ")") {
-			parsed_math[i] = strings.Replace(parsed_math[i], "(", "", -1)
-			parsed_math[i] = strings.Replace(parsed_math[i], ")", "", -1)
-			parsed_math[i] = strings.Replace(parsed_math[i], "\n", "", -1)
+	for i := 0; i < len(parsedMath); i++ {
+		if strings.Contains(parsedMath[i], "(") || strings.Contains(parsedMath[i], ")") {
+			parsedMath[i] = strings.Replace(parsedMath[i], "(", "", -1)
+			parsedMath[i] = strings.Replace(parsedMath[i], ")", "", -1)
+			parsedMath[i] = strings.Replace(parsedMath[i], "\n", "", -1)
 		}
 	}
 
-	for k, v := range variables {
-		for j := 0; j < len(parsed_math); j++ {
-			if parsed_math[j] == k {
-				parsed_math[j] = v
+	for k, v := range vars {
+		for j := 0; j < len(parsedMath); j++ {
+			if parsedMath[j] == k && v.vtype == "number" {
+				parsedMath[j] = v.value
 			}
 		}
 	}
 
-	for i := 0; i < len(parsed_math)-1; i++ {
-		var num1, num2 int
+	for i := 0; i < len(parsedMath)-1; i++ {
+		var num1, num2 float64
 
 		if i != 0 {
-			num1, _ = strconv.Atoi(parsed_math[i-1])
-			num2, _ = strconv.Atoi(parsed_math[i+1])
+			num1, _ = strconv.ParseFloat(parsedMath[i-1], 64)
+			num2, _ = strconv.ParseFloat(parsedMath[i+1], 64)
 
-			if parsed_math[i] == "+" {
+			switch parsedMath[i] {
+			case "+":
 				result = num1 + num2
-			} else if parsed_math[i] == "-" {
+			case "-":
 				result = num1 - num2
-			} else if parsed_math[i] == "*" {
+			case "*":
 				result = num1 * num2
-			} else if parsed_math[i] == "/" {
+			case "/":
 				result = num1 / num2
 			}
 		}
@@ -93,57 +94,33 @@ func parse_math(math string) int {
 	return result
 }
 
-func parse_exp(exp string) bool {
-	new_exp := strings.Replace(exp, "[", "", -1)
-	new_exp = strings.Replace(new_exp, "]", "", -1)
-	new_exp = strings.Replace(new_exp, "\n", "", -1)
-	parts := strings.Split(new_exp, " ")
+func parseExp(exp string) bool {
+	newExp := strings.Replace(exp, "[", "", -1)
+	newExp = strings.Replace(newExp, "]", "", -1)
+	newExp = strings.Replace(newExp, "\n", "", -1)
+	parts := strings.Split(newExp, " ")
 
 	for i := 0; i < len(parts); i++ {
-		for k, v := range variables {
-			if strings.Contains(parts[i], k) {
-				parts[i] = strings.Replace(parts[i], k, v, -1)
-			}
+		for k, v := range vars {
+			parts[i] = strings.Replace(parts[i], k, v.value, -1)
 		}
 	}
 
 	result := false
-	var num1, num2 int
+	num1, _ := strconv.ParseFloat(parts[0], 64)
+	num2, _ := strconv.ParseFloat(parts[2], 64)
 
-	for i := 0; i < len(numbers); i++ {
-		if strings.HasPrefix(parts[0], strconv.Itoa(numbers[i])) {
-			num1, _ = strconv.Atoi(parts[0])
-		}
-
-		if strings.HasPrefix(parts[2], strconv.Itoa(numbers[i])) {
-			num2, _ = strconv.Atoi(parts[0])
-		}
-	}
-
-	if num1 == 0 && num2 == 0 {
-		if parts[1] == "<" {
-			result = num1 < num2
-		} else if parts[1] == ">" {
-			result = num1 > num2
-		} else if parts[1] == "=" {
-			result = num1 == num2
-		} else if parts[1] == "<=" {
-			result = num1 <= num2
-		} else if parts[1] == ">=" {
-			result = num1 >= num2
-		}
-	} else {
-		if parts[1] == "<" {
-			result = parts[0] < parts[2]
-		} else if parts[1] == ">" {
-			result = parts[0] > parts[2]
-		} else if parts[1] == "=" {
-			result = parts[0] == parts[2]
-		} else if parts[1] == "<=" {
-			result = parts[0] <= parts[2]
-		} else if parts[1] == ">=" {
-			result = parts[0] >= parts[2]
-		}
+	switch parts[1] {
+	case "<":
+		result = num1 < num2
+	case ">":
+		result = num1 > num2
+	case "=":
+		result = num1 == num2
+	case "<=":
+		result = num1 <= num2
+	case ">=":
+		result = num1 >= num2
 	}
 
 	return result
@@ -163,17 +140,18 @@ func parse(text []string) {
 			i = j
 		} else if strings.HasPrefix(text[i], "var") {
 			cleaned := strings.Replace(text[i], "\n", "", -1)
+			cleaned = strings.Replace(text[i], ":", " ", -1)
 			parts := strings.Split(cleaned, " ")
-			var_is_keyword := false
+			varIsKeyword := false
 
 			for j := 0; j < len(keywords); j++ {
 				if parts[1] == keywords[j] {
-					var_is_keyword = true
+					varIsKeyword = true
 				}
 			}
 
-			if var_is_keyword == false {
-				variables[parts[1]] = "null"
+			if varIsKeyword == false {
+				vars[parts[1]] = variable{"null", parts[2]}
 			}
 		} else if strings.HasPrefix(text[i], "set") {
 			parts := strings.Split(text[i], " ")
@@ -184,129 +162,146 @@ func parse(text []string) {
 				}
 			}
 
-			for k, _ := range variables {
+			for k, _ := range vars {
 				if parts[1] == k {
 					if strings.HasPrefix(parts[2], "\"") {
-						variables[k] = parse_text(parts[2])
+						vars[k] = variable{parseText(parts[2]), "text"}
 					} else if strings.HasPrefix(parts[2], "(") {
-						variables[k] = strconv.Itoa(parse_math(parts[2]))
+						vars[k] = variable{strconv.FormatFloat(parseMath(parts[2]), 'f', -1, 64), "number"}
 					} else if strings.HasPrefix(parts[2], "{") {
 						value := strings.Replace(parts[2], "{", "", -1)
 						value = strings.Replace(value, "}", "", -1)
 						parse([]string{value})
-						variables[k] = variables["return"]
+						vars[k] = vars["return"]
 					} else {
-						variables[k] = parts[2]
+						vars[k] = variable{parts[2], "number"}
 					}
 				}
 			}
 		} else if strings.HasPrefix(text[i], "if") {
-			inside_lines := []string{}
+			insideLines := []string{}
 
 			j := i + 1
 			for !strings.HasPrefix(text[j], "endif") {
-				inside_lines = append(inside_lines, text[j])
+				insideLines = append(insideLines, text[j])
 				j++
 			}
 
-			no_keyword, _ := strings.CutPrefix(text[i], "if ")
+			noKeyword, _ := strings.CutPrefix(text[i], "if ")
 
-			if parse_exp(no_keyword) {
-				parse(inside_lines)
+			if parseExp(noKeyword) {
+				parse(insideLines)
 			}
 
 			i = j
 		} else if strings.HasPrefix(text[i], "func") {
-			inside_lines := []string{}
-			func_is_keyword := false
+			insideLines := []string{}
+			funcIsKeyword := false
 
 			j := i + 1
 
 			for !strings.HasPrefix(text[j], "endfunc") {
-				inside_lines = append(inside_lines, text[j])
+				insideLines = append(insideLines, text[j])
 				j++
 			}
 
 			parts := strings.Split(text[i], " ")
-			params := []string{}
+			params := make(map[string]parameter)
 
 			i = j
 
 			for k := 2; k < len(parts); k++ {
-				params = append(params, parts[k])
+				param := strings.Split(parts[k], ":")
+				paramName := strings.ToUpper(param[0]) + strconv.Itoa(rand.IntN(1000))
+				params[paramName] = parameter{param[0], param[1]}
+
 			}
 
 			for k := 0; k < len(keywords); k++ {
 				if parts[1] == keywords[k] {
-					func_is_keyword = true
+					funcIsKeyword = true
 				}
 			}
 
-			if func_is_keyword == false {
-				functions[parts[1]] = function{params, inside_lines}
+			for k := 0; k < len(insideLines); k++ {
+				for name, param := range params {
+					insideLines[k] = strings.Replace(insideLines[k], strings.ToLower(param.uname), name, -1)
+				}
+			}
+
+			if funcIsKeyword == false {
+				funcs[parts[1]] = function{params, insideLines}
 			}
 		} else if strings.HasPrefix(text[i], "return") {
-			no_keyword, _ := strings.CutPrefix(text[i], "return ")
+			noKeyword, _ := strings.CutPrefix(text[i], "return ")
 
-			if strings.HasPrefix(no_keyword, "\"") {
-				variables["return"] = parse_text(no_keyword)
-			} else if strings.HasPrefix(no_keyword, "(") {
-				variables["return"] = strconv.Itoa(parse_math(no_keyword))
+			if strings.HasPrefix(noKeyword, "\"") {
+				vars["return"] = variable{parseText(noKeyword), "text"}
+			} else if strings.HasPrefix(noKeyword, "(") {
+				vars["return"] = variable{strconv.FormatFloat(parseMath(noKeyword), 'f', -1, 64), "number"}
+			} else {
+				vars["return"] = variable{noKeyword, "number"}
 			}
 		} else if strings.HasPrefix(text[i], "print") {
-			no_keyword, _ := strings.CutPrefix(text[i], "print ")
+			noKeyword, _ := strings.CutPrefix(text[i], "print ")
 
-			for k, v := range variables {
-				if strings.Contains(no_keyword, "$"+k+"$") {
-					no_keyword = strings.Replace(no_keyword, "$"+k+"$", v, -1)
+			for k, v := range vars {
+				if strings.Contains(noKeyword, "$"+k+"$") {
+					noKeyword = strings.Replace(noKeyword, "$"+k+"$", v.value, -1)
 				}
 			}
 
-			if strings.HasPrefix(no_keyword, "\"") {
-				fmt.Println(parse_text(no_keyword))
-			} else if strings.HasPrefix(no_keyword, "(") {
-				fmt.Println(parse_math(no_keyword))
-			} else if strings.HasPrefix(no_keyword, "{") {
-				code := strings.Replace(no_keyword, "{", "", -1)
+			if strings.HasPrefix(noKeyword, "\"") {
+				fmt.Println(parseText(noKeyword))
+			} else if strings.HasPrefix(noKeyword, "(") {
+				fmt.Printf("%.4v\n", parseMath(noKeyword))
+			} else if strings.HasPrefix(noKeyword, "{") {
+				code := strings.Replace(noKeyword, "{", "", -1)
 				code = strings.Replace(code, "}", "", -1)
 				parse([]string{code})
-				fmt.Println(variables["return"])
+				fmt.Println(vars["return"].value)
 			} else {
-				fmt.Println(no_keyword)
+				fmt.Println(noKeyword)
 			}
+		} else if strings.HasPrefix(text[i], "read") {
+			var input string
+			fmt.Scan(&input)
+			vars["return"] = variable{input, "text"}
 		} else {
-			for key, _ := range functions {
-				if strings.HasPrefix(text[i], key) {
-					no_keyword, _ := strings.CutPrefix(text[i], "func ")
-					no_keyword, _ = strings.CutPrefix(no_keyword, key+" ")
-					parts := strings.Split(no_keyword, " ")
+			for funcName := range funcs {
+				if strings.HasPrefix(text[i], funcName) {
+					noKeyword, _ := strings.CutPrefix(text[i], "func ")
+					noKeyword, _ = strings.CutPrefix(noKeyword, funcName+" ")
+					parts := strings.Split(noKeyword, " ")
 					values := []string{}
 
 					for k := 0; k < len(parts); k++ {
 						if strings.HasPrefix(parts[k], "\"") && !strings.HasSuffix(parts[k], "\"") {
-							string_value := ""
+							stringValue := ""
 							m := k
 							for m < len(parts) {
-								string_value += parts[m]
+								stringValue += parts[m]
 								if strings.HasSuffix(parts[m], "\"") {
 									break
 								} else {
-									string_value += " "
+									stringValue += " "
 								}
 								m++
 							}
 							k = m
-							values = append(values, string_value)
+							values = append(values, stringValue)
 						} else {
 							values = append(values, parts[k])
 						}
 					}
 
-					for k := 0; k < len(functions[key].params); k++ {
-						variables[functions[key].params[k]] = values[k]
+					k := 0
+					for name, param := range funcs[funcName].params {
+						vars[name] = variable{values[k], param.vtype}
+						k++
 					}
 
-					parse(functions[key].runs)
+					parse(funcs[funcName].runs)
 				}
 			}
 		}
@@ -314,8 +309,8 @@ func parse(text []string) {
 }
 
 func main() {
-	raw_source, _ := os.ReadFile(os.Args[1])
-	string_source := strings.Replace(string(raw_source), "\r\n", "\n", -1)
-	source := strings.Split(string_source, "\n")
+	rawSource, _ := os.ReadFile(os.Args[1])
+	stringSource := strings.Replace(string(rawSource), "\r\n", "\n", -1)
+	source := strings.Split(stringSource, "\n")
 	parse(source)
 }
